@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Stock Webcam</string>
+    <string name="title_webcam">Webcam</string>
+    <string name="usb_status_connected">Connected via USB Cable</string>
+    <string name="usb_status_disconnected">USB Disconnected</string>
+    <string name="usb_status_streaming">Live Streaming Active</string>
+    
+    <string name="action_switch_camera">Switch Camera</string>
+    <string name="action_zoom_1x">1x</string>
+    <string name="action_zoom_2x">2x</string>
+    <string name="action_torch">Flashlight</string>
+    <string name="action_hq_mode">HQ Mode</string>
+    <string name="action_black_screen">Energy Saver</string>
+    <string name="action_resolution">Resolution</string>
+    
+    <string name="mode_universal">Direct USB Stream (No Tethering)</string>
+    <string name="mode_native_uvc">Native UVC Gadget (Root)</string>
+    <string name="desc_quick_connect">Connect USB cable &amp; open on PC (No USB Tethering needed):</string>
+</resources>

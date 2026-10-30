@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stock Android Pixel Dark Palette -->
+    <color name="bg_dark">#121316</color>
+    <color name="surface_dark">#1E1F24</color>
+    <color name="surface_variant">#2B2D33</color>
+    <color name="surface_container">#16171B</color>
+    
+    <color name="primary">#A8C7FA</color>
+    <color name="on_primary">#062E6F</color>
+    <color name="primary_container">#0842A0</color>
+    <color name="on_primary_container">#D3E3FD</color>
+    
+    <color name="text_primary">#E3E2E6</color>
+    <color name="text_secondary">#C4C7C5</color>
+    <color name="text_hint">#8E918F</color>
+    
+    <color name="status_green">#6DD58C</color>
+    <color name="status_green_bg">#1B3726</color>
+    <color name="status_amber">#F2B8B5</color>
+    
+    <color name="overlay_black_transparent">#B3000000</color>
+    <color name="control_pill_bg">#D9202227</color>
+</resources>
+
