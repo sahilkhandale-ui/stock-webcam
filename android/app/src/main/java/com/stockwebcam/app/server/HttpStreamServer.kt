@@ -400,9 +400,9 @@ class HttpStreamServer(
     </div>
 
     <div class="card">
-      <h3>🚀 How to use in Zoom, Teams, Meet & OBS:</h3>
+      <h3>🚀 How to use in Zoom, Teams, Meet &amp; OBS:</h3>
       <div class="instructions">
-        <p>• <b>Direct in OBS Studio:</b> Add Source ➡️ <code>Browser</code> ➡️ Enter URL: <code>${'$'}{window.location.origin}/stream</code></p>
+        <p>• <b>Direct in OBS Studio:</b> Add Source ➡️ <code>Browser</code> ➡️ Enter URL: <code id="obsUrl">http://localhost:8080/stream</code></p>
         <p>• <b>Native Webcam in Zoom/Teams/Discord:</b> In OBS Studio, click <b>"Start Virtual Camera"</b>, or run the included 1-click <code>StockWebcam-Windows.bat</code> bridge!</p>
         <p>• <b>Pure USB Cable (No Tethering):</b> Runs directly over ADB USB cable on <code>http://localhost:8080</code>. Zero tethering or network configuration required.</p>
       </div>
@@ -410,6 +410,7 @@ class HttpStreamServer(
   </div>
 
   <script>
+    document.getElementById('obsUrl').textContent = window.location.origin + '/stream';
     function control(cmd, val) {
       fetch('/control?cmd=' + cmd + (val ? '&val=' + val : ''));
     }

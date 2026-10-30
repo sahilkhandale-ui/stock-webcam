@@ -1,9 +1,8 @@
 package com.stockwebcam.app.camera
 
 import android.content.Context
-import android.graphics.ImageFormat
-import android.graphics.Rect
-import android.graphics.YuvImage
+import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.util.Log
 import android.util.Size
 import androidx.camera.core.*
@@ -12,7 +11,6 @@ import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import java.io.ByteArrayOutputStream
-import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -36,7 +34,6 @@ class CameraEngine(
 
     // Reusable byte array output stream for JPEG compression
     private val jpegStream = ByteArrayOutputStream(1920 * 1080)
-    private var nv21Buffer: ByteArray? = null
 
     fun startCamera(onSuccess: (() -> Unit)? = null) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
@@ -71,7 +68,6 @@ class CameraEngine(
         val imageAnalysis = ImageAnalysis.Builder()
             .setTargetResolution(targetResolution)
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
             .build()
 
         imageAnalysis.setAnalyzer(cameraExecutor) { imageProxy ->
@@ -98,55 +94,30 @@ class CameraEngine(
 
     private fun processImageProxy(image: ImageProxy) {
         try {
-            val yBuffer = image.planes[0].buffer
-            val uBuffer = image.planes[1].buffer
-            val vBuffer = image.planes[2].buffer
+            // CameraX built-in hardware-accelerated converter handles
+            // row strides, pixel strides, and device-specific memory alignment flawlessly
+            val bitmap = image.toBitmap()
+            val rotationDegrees = image.imageInfo.rotationDegrees
 
-            val ySize = yBuffer.remaining()
-            val uSize = uBuffer.remaining()
-            val vSize = vBuffer.remaining()
-
-            val totalSize = ySize + uSize + vSize
-            if (nv21Buffer == null || nv21Buffer!!.size != totalSize) {
-                nv21Buffer = ByteArray(totalSize)
-            }
-            val nv21 = nv21Buffer!!
-
-            yBuffer.get(nv21, 0, ySize)
-
-            // In YUV_420_888 to NV21: interleaved V and U
-            val pixelStride = image.planes[2].pixelStride
-            val rowStride = image.planes[2].rowStride
-
-            val width = image.width
-            val height = image.height
-
-            if (pixelStride == 2) {
-                // Already semi-planar NV21
-                vBuffer.get(nv21, ySize, vSize)
+            // Rotate bitmap if the sensor orientation requires it
+            val finalBitmap = if (rotationDegrees != 0) {
+                val matrix = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
+                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
             } else {
-                // Pack UV into NV21 (VU order)
-                var pos = ySize
-                val uBytes = ByteArray(uSize)
-                val vBytes = ByteArray(vSize)
-                uBuffer.get(uBytes)
-                vBuffer.get(vBytes)
-
-                for (i in 0 until uSize) {
-                    if (pos + 1 < nv21.size) {
-                        nv21[pos++] = vBytes[i]
-                        nv21[pos++] = uBytes[i]
-                    }
-                }
+                bitmap
             }
 
-            val yuvImage = YuvImage(nv21, ImageFormat.NV21, width, height, null)
             jpegStream.reset()
-            val quality = if (isHqMode) 90 else 75
-            yuvImage.compressToJpeg(Rect(0, 0, width, height), quality, jpegStream)
+            val quality = if (isHqMode) 90 else 80
+            finalBitmap.compress(Bitmap.CompressFormat.JPEG, quality, jpegStream)
 
             val jpegBytes = jpegStream.toByteArray()
             onFrameCaptured(jpegBytes)
+
+            if (finalBitmap != bitmap) {
+                finalBitmap.recycle()
+            }
+            bitmap.recycle()
         } catch (e: Exception) {
             Log.e(TAG, "Frame processing error", e)
         } finally {
@@ -195,4 +166,3 @@ class CameraEngine(
         cameraExecutor.shutdown()
     }
 }
-
